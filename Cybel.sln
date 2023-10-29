@@ -3,7 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybel.Core", "Cybel.Core\Cybel.Core.csproj", "{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybel.Runner", "Cybel.Runner\Cybel.Runner.csproj", "{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
