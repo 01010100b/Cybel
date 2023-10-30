@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Cybel.Core.Tables
+namespace Cybel.Core
 {
     public class Table<TData> where TData : class
     {

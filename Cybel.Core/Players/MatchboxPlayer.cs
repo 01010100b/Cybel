@@ -1,5 +1,4 @@
-﻿using Cybel.Core.Tables;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,35 +7,44 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core.Players
 {
-    public class MatchboxPlayer : ScoringPlayerBase
+    public class MatchboxPlayer : IScoringPlayer, IParametrized<MatchboxPlayerParameters>
     {
         private class Matchbox
         {
-            public List<int> Pips { get; set; } = new();
+            public List<int> Pips { get; } = new();
+
+            public Matchbox(int moves, int pips)
+            {
+                for (int i = 0; i < moves; i++)
+                {
+                    Pips.Add(pips);
+                }
+            }
         }
 
-        public double TimeMod { get; set; } = 2;
-        public double ExploreChance { get; set; } = 0.3;
-        public int InitialPips { get; set; } = 3;
-        public int MaxPips { get; set; } = 1000;
-        public double PipChangeMod { get; set; } = -0.2;
+        public MatchboxPlayerParameters Parameters { get; set; } = new();
 
         private Table<Matchbox> Table { get; } = new();
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
-        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
+        public void LoadParameters(IGame game)
         {
-            RunSimulations(game.Copy(), time / Math.Max(1.1, TimeMod));
+            Parameters = new();
+        }
+
+        public Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
+        {
+            RunSimulations(game.Copy(), time / Math.Max(1.1, Parameters.TimeMod));
 
             var entry = Table.GetEntry(game);
-            var pips = entry.Data!.Pips;
+            entry.Data ??= new(entry.Moves.Count, Parameters.InitialPips);
             var scores = new Dictionary<Move, double>();
 
             for (int i = 0; i < entry.Moves.Count; i++)
             {
                 var move = entry.Moves[i];
-                var score = (double)pips[i];
+                var score = (double)entry.Data.Pips[i];
                 scores.Add(move, score);
             }
 
@@ -51,8 +59,9 @@ namespace Cybel.Core.Players
             var sw = new Stopwatch();
             sw.Start();
 
-            do
+            while (sw.Elapsed < time)
             {
+                Simulations++;
                 game.CopyTo(g);
                 choices.Clear();
                 winners.Clear();
@@ -60,24 +69,11 @@ namespace Cybel.Core.Players
                 while (!g.IsTerminal())
                 {
                     var entry = Table.GetEntry(g);
-                    
-                    if (entry.Data is null)
-                    {
-                        var data = new Matchbox();
-
-                        for (int i = 0; i < entry.Moves.Count; i++)
-                        {
-                            data.Pips.Add(InitialPips);
-                        }
-
-                        entry.Data = data;
-                    }
-
-                    var choice = RNG.NextDouble() < ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data);
+                    entry.Data ??= new(entry.Moves.Count, Parameters.InitialPips);
+                    var choice = RNG.NextDouble() < Parameters.ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data);
                     var move = entry.Moves[choice];
-
-                    g.Perform(move);
                     choices.Add(new(entry, choice));
+                    g.Perform(move);
                 }
 
                 for (int i = 0; i < g.NumberOfPlayers; i++)
@@ -88,35 +84,34 @@ namespace Cybel.Core.Players
                     }
                 }
 
-                if (winners.Count > 0)
+                if (winners.Count == 0)
                 {
-                    for (int i = 0; i < choices.Count; i++)
-                    {
-                        var left = Math.Max(1, choices.Count - i);
-                        var chance = Math.Pow(left, PipChangeMod);
-
-                        if (RNG.NextDouble() > chance)
-                        {
-                            continue;
-                        }
-
-                        var choice = choices[i];
-                        var pips = choice.Key.Data!.Pips;
-
-                        if (winners.Contains(choice.Key.Player))
-                        {
-                            pips[choice.Value] = Math.Min(MaxPips, pips[choice.Value] + 1);
-                        }
-                        else
-                        {
-                            pips[choice.Value] = Math.Max(0, pips[choice.Value] - 1);
-                        }
-                    }
+                    continue;
                 }
 
-                Simulations++;
+                for (int i = 0; i < choices.Count; i++)
+                {
+                    var depth = Math.Max(1, choices.Count - i);
+                    var chance = Math.Pow(depth, Parameters.PipChangeMod);
 
-            } while (sw.Elapsed < time);
+                    if (RNG.NextDouble() > chance)
+                    {
+                        continue;
+                    }
+
+                    var choice = choices[i];
+                    var pips = choice.Key.Data!.Pips;
+
+                    if (winners.Contains(choice.Key.Player))
+                    {
+                        pips[choice.Value] = Math.Min(Parameters.MaxPips, pips[choice.Value] + 1);
+                    }
+                    else
+                    {
+                        pips[choice.Value] = Math.Max(0, pips[choice.Value] - 1);
+                    }
+                }
+            }
         }
 
         private int Choose(Matchbox matchbox)

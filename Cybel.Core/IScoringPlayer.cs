@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cybel.Core.Players
+namespace Cybel.Core
 {
-    public abstract class ScoringPlayerBase : IPlayer
+    public interface IScoringPlayer : IPlayer
     {
-        public Move ChooseMove(IGame game, TimeSpan time)
+        Move IPlayer.ChooseMove(IGame game, TimeSpan time)
         {
             var scores = ScoreMoves(game, time);
 
@@ -35,6 +35,6 @@ namespace Cybel.Core.Players
             return best.Value;
         }
 
-        public abstract Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time);
+        public Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time);
     }
 }

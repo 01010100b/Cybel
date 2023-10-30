@@ -15,8 +15,18 @@ namespace Cybel.Core
 
         public IReadOnlyDictionary<IPlayer, int> Play(IGame game, IReadOnlyList<IPlayer> players, int games)
         {
-            var results = new Dictionary<IPlayer, int>(players
-                .Select(x => new KeyValuePair<IPlayer, int>(x, 0)));
+            var results = new Dictionary<IPlayer, int>();
+
+            foreach (var player in players)
+            {
+                results.Add(player, 0);
+                
+                if (player is IParametrized p)
+                {
+                    p.LoadParameters(game);
+                    Console.WriteLine($"setting parameters for {p.GetType().Name}");
+                }
+            }
 
             for (int i = 0; i < games; i++)
             {

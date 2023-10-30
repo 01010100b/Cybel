@@ -8,6 +8,7 @@ namespace Cybel.Core
 {
     public interface IGame
     {
+        public ulong Id { get; }
         public int NumberOfPlayers { get; }
 
         public ulong GetHash();

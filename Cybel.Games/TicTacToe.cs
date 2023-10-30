@@ -22,6 +22,7 @@ namespace Cybel.Games
             new int[] {2, 4, 6}
         };
 
+        public ulong Id => Zobrist.GetHash(GetType());
         public int NumberOfPlayers => 2;
 
         private int[] Board { get; } = new int[9];

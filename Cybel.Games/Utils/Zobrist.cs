@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,6 +9,18 @@ namespace Cybel.Games.Utils
 {
     public class Zobrist
     {
+        public static ulong GetHash(Type type)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(type.Name));
+
+            if (bytes.Length < sizeof(ulong))
+            {
+                throw new Exception("Not enough hashed bytes.");
+            }
+
+            return BitConverter.ToUInt64(bytes);
+        }
+
         public ulong Hash { get; private set; }
 
         private ulong[][] Hashes { get; }
