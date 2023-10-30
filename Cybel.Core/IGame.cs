@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core
 {
-    public interface IGame<TSelf> where TSelf : IGame<TSelf>, new()
+    public interface IGame
     {
         public int NumberOfPlayers { get; }
 
@@ -16,14 +16,8 @@ namespace Cybel.Core
         public bool IsWinningPlayer(int player);
 
         public IEnumerable<Move> GetMoves();
-        public void Perform(Move action);
-        public void CopyTo(TSelf other);
-        public TSelf Copy()
-        {
-            var t = new TSelf();
-            CopyTo(t);
-
-            return t;
-        }
+        public void Perform(Move move);
+        public void CopyTo(IGame other);
+        public IGame Copy();
     }
 }

@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core.Players
 {
-    public class RandomPlayer<TGame> : IPlayer<TGame> where TGame : IGame<TGame>, new()
+    public class RandomPlayer : IPlayer
     {
         private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
 
-        public Move GetAction(TGame game, TimeSpan time)
+        public Move GetMove(IGame game, TimeSpan time)
         {
-            var actions = game.GetMoves().ToList();
+            var moves = game.GetMoves().ToList();
 
-            return actions[RNG.Next(actions.Count)];
+            return moves[RNG.Next(moves.Count)];
         }
     }
 }

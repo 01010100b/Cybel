@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core
 {
-    public interface IPlayer<TGame> where TGame : IGame<TGame>, new()
+    public interface IPlayer
     {
-        public Move GetAction(TGame game, TimeSpan time);
+        public Move GetMove(IGame game, TimeSpan time);
     }
 }
