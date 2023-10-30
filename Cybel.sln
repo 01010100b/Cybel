@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybel.Core", "Cybel.Core\Cybel.Core.csproj", "{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cybel.Core", "Cybel.Core\Cybel.Core.csproj", "{D122780A-ED5E-4FCD-8BA7-95E0B62D167F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybel.Runner", "Cybel.Runner\Cybel.Runner.csproj", "{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cybel.Runner", "Cybel.Runner\Cybel.Runner.csproj", "{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cybel.Games", "Cybel.Games\Cybel.Games.csproj", "{0322670D-B45F-4B8A-AA11-5A9BD8E25A08}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E9E158E-BDBE-4A98-9026-3DFC59B94E09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0322670D-B45F-4B8A-AA11-5A9BD8E25A08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0322670D-B45F-4B8A-AA11-5A9BD8E25A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0322670D-B45F-4B8A-AA11-5A9BD8E25A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0322670D-B45F-4B8A-AA11-5A9BD8E25A08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

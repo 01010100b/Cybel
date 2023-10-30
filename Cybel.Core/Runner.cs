@@ -20,7 +20,7 @@ namespace Cybel.Core
 
             for (int i = 0; i < games; i++)
             {
-                var winners = PlayGame(players, game.Copy());
+                var winners = PlayGame(players.OrderBy(x => Random.Shared.Next()).ToList(), game.Copy());
 
                 foreach (var winner in winners)
                 {
@@ -66,13 +66,13 @@ namespace Cybel.Core
 
                 if (WriteToConsole)
                 {
-                    Console.WriteLine(game);
-
                     for (int i = 0; i < players.Count; i++)
                     {
                         var p = players[i];
                         Console.WriteLine($"{i} {p.GetType().Name} {p}");
                     }
+
+                    Console.WriteLine(game);
                 }
             }
 

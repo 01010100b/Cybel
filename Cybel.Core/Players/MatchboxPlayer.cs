@@ -1,4 +1,4 @@
-﻿using Cybel.Core.Trees;
+﻿using Cybel.Core.Tables;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,9 +18,10 @@ namespace Cybel.Core.Players
         public double TimeMod { get; set; } = 2;
         public double ExploreChance { get; set; } = 0.3;
         public int InitialPips { get; set; } = 3;
-        public int MaxPips { get; set; } = 100;
+        public int MaxPips { get; set; } = 1000;
+        public double PipChangeMod { get; set; } = -0.2;
 
-        private Tree<Matchbox> Tree { get; } = new();
+        private Table<Matchbox> Table { get; } = new();
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
@@ -28,15 +29,15 @@ namespace Cybel.Core.Players
         {
             RunSimulations(game.Copy(), time / Math.Max(1.1, TimeMod));
             
-            var node = Tree.GetNode(game);
-            var choice = RNG.Next(node.Moves.Count);
+            var entry = Table.GetEntry(game);
+            var choice = RNG.Next(entry.Moves.Count);
 
-            if (node.Data is not null)
+            if (entry.Data is not null)
             {
-                choice = Choose(node.Data);
+                choice = Choose(entry.Data);
             }
 
-            var move = node.Moves[choice];
+            var move = entry.Moves[choice];
 
             return move;
         }
@@ -44,7 +45,7 @@ namespace Cybel.Core.Players
         private void RunSimulations(IGame game, TimeSpan time)
         {
             var g = game.Copy();
-            var choices = new List<KeyValuePair<TreeNode<Matchbox>, int>>();
+            var choices = new List<KeyValuePair<Table<Matchbox>.Entry, int>>();
             var winners = new List<int>();
             var sw = new Stopwatch();
             sw.Start();
@@ -57,25 +58,25 @@ namespace Cybel.Core.Players
 
                 while (!g.IsTerminal())
                 {
-                    var node = Tree.GetNode(g);
+                    var entry = Table.GetEntry(g);
                     
-                    if (node.Data is null)
+                    if (entry.Data is null)
                     {
                         var data = new Matchbox();
 
-                        for (int i = 0; i < node.Moves.Count; i++)
+                        for (int i = 0; i < entry.Moves.Count; i++)
                         {
                             data.Pips.Add(InitialPips);
                         }
 
-                        node.Data = data;
+                        entry.Data = data;
                     }
 
-                    var choice = RNG.NextDouble() < ExploreChance ? RNG.Next(node.Moves.Count) : Choose(node.Data);
-                    var move = node.Moves[choice];
+                    var choice = RNG.NextDouble() < ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data);
+                    var move = entry.Moves[choice];
 
                     g.Perform(move);
-                    choices.Add(new(node, choice));
+                    choices.Add(new(entry, choice));
                 }
 
                 for (int i = 0; i < g.NumberOfPlayers; i++)
@@ -88,8 +89,17 @@ namespace Cybel.Core.Players
 
                 if (winners.Count > 0)
                 {
-                    foreach (var choice in choices)
+                    for (int i = 0; i < choices.Count; i++)
                     {
+                        var left = Math.Max(1, choices.Count - i);
+                        var chance = Math.Pow(left, PipChangeMod);
+
+                        if (RNG.NextDouble() > chance)
+                        {
+                            continue;
+                        }
+
+                        var choice = choices[i];
                         var pips = choice.Key.Data!.Pips;
 
                         if (winners.Contains(choice.Key.Player))

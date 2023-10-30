@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cybel.Runner
+namespace Cybel.Games.Utils
 {
     public class Zobrist
     {

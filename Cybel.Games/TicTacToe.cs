@@ -1,13 +1,14 @@
 ﻿using Cybel.Core;
+using Cybel.Games.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cybel.Runner
+namespace Cybel.Games
 {
-    internal class TicTacToe : IGame
+    public class TicTacToe : IGame
     {
         private static int[][] WinningCombinations { get; } = new int[][]
         {
