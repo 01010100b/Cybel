@@ -52,8 +52,9 @@ namespace Cybel.Core
                 var player = game.GetCurrentPlayer();
                 times[player] += TimePerMove;
                 game.CopyTo(g);
+
                 sw.Restart();
-                var move = players[player].GetMove(g, times[player]);
+                var move = players[player].ChooseMove(g, times[player]);
                 sw.Stop();
                 times[player] -= sw.Elapsed;
 

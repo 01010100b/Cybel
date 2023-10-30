@@ -8,6 +8,6 @@ namespace Cybel.Core
 {
     public interface IPlayer
     {
-        public Move GetMove(IGame game, TimeSpan time);
+        public Move ChooseMove(IGame game, TimeSpan time);
     }
 }

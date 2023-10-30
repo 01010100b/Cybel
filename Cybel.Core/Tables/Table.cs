@@ -48,24 +48,24 @@ namespace Cybel.Core.Tables
             {
                 Visit = 0;
 
-                foreach (var n in Entries.Values)
+                foreach (var e in Entries.Values)
                 {
-                    n.LastVisit = Visit;
+                    e.LastVisit = Visit;
                 }
             }
 
-            if (Entries.TryGetValue(game.GetHash(), out var node))
+            if (Entries.TryGetValue(game.GetHash(), out var entry))
             {
-                node.LastVisit = Visit;
+                entry.LastVisit = Visit;
 
-                return node;
+                return entry;
             }
             else
             {
-                node = new(game) { LastVisit = Visit };
-                Entries.Add(node.Hash, node);
+                entry = new(game) { LastVisit = Visit };
+                Entries.Add(entry.Hash, entry);
 
-                return node;
+                return entry;
             }
         }
 

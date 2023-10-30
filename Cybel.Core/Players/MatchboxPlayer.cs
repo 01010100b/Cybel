@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core.Players
 {
-    public class MatchboxPlayer : IPlayer
+    public class MatchboxPlayer : ScoringPlayerBase
     {
         private class Matchbox
         {
@@ -25,21 +25,22 @@ namespace Cybel.Core.Players
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
-        public Move GetMove(IGame game, TimeSpan time)
+        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
             RunSimulations(game.Copy(), time / Math.Max(1.1, TimeMod));
-            
-            var entry = Table.GetEntry(game);
-            var choice = RNG.Next(entry.Moves.Count);
 
-            if (entry.Data is not null)
+            var entry = Table.GetEntry(game);
+            var pips = entry.Data!.Pips;
+            var scores = new Dictionary<Move, double>();
+
+            for (int i = 0; i < entry.Moves.Count; i++)
             {
-                choice = Choose(entry.Data);
+                var move = entry.Moves[i];
+                var score = (double)pips[i];
+                scores.Add(move, score);
             }
 
-            var move = entry.Moves[choice];
-
-            return move;
+            return scores;
         }
 
         private void RunSimulations(IGame game, TimeSpan time)

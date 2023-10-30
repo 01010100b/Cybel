@@ -10,7 +10,7 @@ namespace Cybel.Core.Players
     {
         private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
 
-        public Move GetMove(IGame game, TimeSpan time)
+        public Move ChooseMove(IGame game, TimeSpan time)
         {
             var moves = game.GetMoves().ToList();
 
