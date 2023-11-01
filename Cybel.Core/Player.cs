@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core
 {
-    public interface IScoringPlayer : IPlayer
+    public abstract class Player
     {
-        Move IPlayer.ChooseMove(IGame game, TimeSpan time)
+        public virtual Move ChooseMove(IGame game, TimeSpan time)
         {
             var scores = ScoreMoves(game, time);
 
@@ -35,6 +35,6 @@ namespace Cybel.Core
             return best.Value;
         }
 
-        public Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time);
+        public abstract Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time);
     }
 }

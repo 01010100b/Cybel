@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,11 +13,7 @@ namespace Cybel.Games.Utils
         public static ulong GetHash(Type type)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(type.Name));
-
-            if (bytes.Length < sizeof(ulong))
-            {
-                throw new Exception("Not enough hashed bytes.");
-            }
+            Debug.Assert(bytes.Length >= sizeof(ulong));
 
             return BitConverter.ToUInt64(bytes);
         }

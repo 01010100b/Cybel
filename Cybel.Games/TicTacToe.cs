@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Cybel.Games
 {
-    public class TicTacToe : IGame
+    public class TicTacToe : IGame<TicTacToe>
     {
         private static int[][] WinningCombinations { get; } = new int[][]
         {
@@ -31,24 +31,19 @@ namespace Cybel.Games
         private int Winner { get; set; } = -1;
         private Zobrist Zobrist { get; } = new(9, 9, 9);
 
-        public void CopyTo(IGame other)
+        public void CopyTo(TicTacToe other)
         {
-            if (other is not TicTacToe o)
-            {
-                throw new Exception("other must be TicTacToe.");
-            }
-
-            o.Player = Player;
-            o.Terminal = Terminal;
-            o.Winner = Winner;
+            other.Player = Player;
+            other.Terminal = Terminal;
+            other.Winner = Winner;
 
             for (int i = 0; i < Board.Length; i++)
             {
-                o.Board[i] = Board[i];
+                other.Board[i] = Board[i];
             }
         }
 
-        public IGame Copy()
+        public TicTacToe Copy()
         {
             var t = new TicTacToe();
             CopyTo(t);
@@ -74,7 +69,7 @@ namespace Cybel.Games
 
         public int GetCurrentPlayer() => Player;
 
-        public ulong GetHash()
+        public ulong GetStateHash()
         {
             Zobrist.Reset();
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core.Players
 {
-    public class MatchboxPlayer : IScoringPlayer, IParametrized<MatchboxPlayerParameters>
+    public class MatchboxPlayer : Player, IParametrized<MatchboxPlayerParameters>
     {
         private class Matchbox
         {
@@ -28,12 +28,7 @@ namespace Cybel.Core.Players
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
-        public void LoadParameters(IGame game)
-        {
-            Parameters = new();
-        }
-
-        public Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
+        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
             RunSimulations(game.Copy(), time / Math.Max(1.1, Parameters.TimeMod));
 

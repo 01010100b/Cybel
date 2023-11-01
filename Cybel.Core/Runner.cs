@@ -13,9 +13,9 @@ namespace Cybel.Core
         public TimeSpan TimeBank { get; set; } = TimeSpan.FromSeconds(1);
         public TimeSpan TimePerMove { get; set; } = TimeSpan.FromSeconds(0.1);
 
-        public IReadOnlyDictionary<IPlayer, int> Play(IGame game, IReadOnlyList<IPlayer> players, int games)
+        public IReadOnlyDictionary<Player, int> Play(IGame game, IReadOnlyList<Player> players, int games)
         {
-            var results = new Dictionary<IPlayer, int>();
+            var results = new Dictionary<Player, int>();
 
             foreach (var player in players)
             {
@@ -24,7 +24,6 @@ namespace Cybel.Core
                 if (player is IParametrized p)
                 {
                     p.LoadParameters(game);
-                    Console.WriteLine($"setting parameters for {p.GetType().Name}");
                 }
             }
 
@@ -38,10 +37,15 @@ namespace Cybel.Core
                 }
             }
 
+            foreach (var player in players.OfType<IParametrized>())
+            {
+                player.SaveParameters(game);
+            }
+
             return results;
         }
 
-        private List<IPlayer> PlayGame(IReadOnlyList<IPlayer> players, IGame game)
+        private List<Player> PlayGame(IReadOnlyList<Player> players, IGame game)
         {
             if (players.Count != game.NumberOfPlayers)
             {
@@ -87,7 +91,7 @@ namespace Cybel.Core
                 }
             }
 
-            var winners = new List<IPlayer>();
+            var winners = new List<Player>();
 
             for (int i = 0; i < players.Count; i++)
             {

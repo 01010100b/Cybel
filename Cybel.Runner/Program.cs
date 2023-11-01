@@ -9,7 +9,7 @@ namespace Cybel.Runner
     {
         static void Main(string[] args)
         {
-            var game = new TicTacToe();
+            var game = MNK.GetTicTacToe();
             RunTournament(game.Copy(), 1, true);
             RunTournament(game.Copy(), 100);
         }
@@ -20,7 +20,7 @@ namespace Cybel.Runner
             var sw = new Stopwatch();
             sw.Start();
             var runner = new Core.Runner() { WriteToConsole = verbose };
-            var players = new List<IPlayer>()
+            var players = new List<Player>()
             {
                 new RandomPlayer(),
                 new MatchboxPlayer()
@@ -34,7 +34,7 @@ namespace Cybel.Runner
                 var wins = results[player];
                 var perc = wins / (double)games;
 
-                Console.WriteLine($"{player.GetType().Name} wins {wins:N0} ({perc:P0})");
+                Console.WriteLine($"{i} {player.GetType().Name} wins {wins:N0} ({perc:P0})");
             }
 
             Console.WriteLine($"tournament took {sw.Elapsed}");

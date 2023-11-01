@@ -6,15 +6,22 @@ using System.Threading.Tasks;
 
 namespace Cybel.Core.Players
 {
-    public class RandomPlayer : IPlayer
+    public class RandomPlayer : Player
     {
         private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
 
-        public Move ChooseMove(IGame game, TimeSpan time)
+        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
-            var moves = game.GetMoves().ToList();
+            var scores = new Dictionary<Move, double>();
 
-            return moves[RNG.Next(moves.Count)];
+            foreach (var move in game.GetMoves())
+            {
+                scores.Add(move, 0);
+            }
+
+            scores[scores.ElementAt(RNG.Next(scores.Count)).Key] = 1;
+
+            return scores;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Cybel.Core
 
             internal Entry(IGame game)
             {
-                Hash = game.GetHash();
+                Hash = game.GetStateHash();
                 Player = game.GetCurrentPlayer();
                 Terminal = game.IsTerminal();
                 Moves = game.GetMoves().ToList();
@@ -54,7 +54,7 @@ namespace Cybel.Core
                 }
             }
 
-            if (Entries.TryGetValue(game.GetHash(), out var entry))
+            if (Entries.TryGetValue(game.GetStateHash(), out var entry))
             {
                 entry.LastVisit = Visit;
 
