@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,22 +12,30 @@ namespace Cybel.Core
     {
         public class Entry
         {
-            public ulong Hash { get; }
-            public int Player { get; }
-            public bool Terminal { get; }
+            public ulong Hash { get; private set; }
+            public int Player { get; private set; }
+            public bool Terminal { get; private set; }
             public IReadOnlyList<Move> Moves { get; }
             public TData? Data { get; set; }
 
             internal int LastVisit { get; set; }
 
-            internal Entry(IGame game)
+            internal Entry()
+            {
+                Moves = new List<Move>();
+            }
+
+            internal void Initialize(IGame game)
             {
                 Hash = game.GetStateHash();
                 Player = game.GetCurrentPlayer();
                 Terminal = game.IsTerminal();
-                Moves = game.GetMoves().ToList();
                 Data = null;
                 LastVisit = 0;
+
+                var moves = (List<Move>)Moves;
+                moves.Clear();
+                game.AddMoves(moves);
             }
         }
 
@@ -62,7 +71,9 @@ namespace Cybel.Core
             }
             else
             {
-                entry = new(game) { LastVisit = Visit };
+                entry = ObjectPool.Get(() => new Entry());
+                entry.Initialize(game);
+                entry.LastVisit = Visit;
                 Entries.Add(entry.Hash, entry);
 
                 return entry;
@@ -90,9 +101,17 @@ namespace Cybel.Core
                 }
             }
 
-            foreach (var trim in trims)
+            foreach (var entry in trims)
             {
-                Entries.Remove(trim.Hash);
+                Entries.Remove(entry.Hash);
+                
+                if (entry.Data is not null)
+                {
+                    ObjectPool.Add(entry.Data);
+                    entry.Data = null;
+                }
+
+                ObjectPool.Add(entry);
             }
         }
     }

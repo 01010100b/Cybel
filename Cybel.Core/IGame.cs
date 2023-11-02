@@ -16,12 +16,12 @@ namespace Cybel.Core
         public bool IsTerminal();
         public bool IsWinningPlayer(int player);
 
-        public IEnumerable<Move> GetMoves();
+        public void AddMoves(List<Move> moves);
         public void Perform(Move move);
         public void CopyTo(IGame other);
         public IGame Copy();
     }
-
+    
     public interface IGame<TSelf> : IGame where TSelf : IGame<TSelf>
     {
         public new TSelf Copy();

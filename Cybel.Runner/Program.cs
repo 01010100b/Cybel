@@ -9,7 +9,7 @@ namespace Cybel.Runner
     {
         static void Main(string[] args)
         {
-            var game = MNK.GetTicTacToe();
+            var game = MNK.GetConnectFour();
             RunTournament(game.Copy(), 1, true);
             RunTournament(game.Copy(), 100);
         }

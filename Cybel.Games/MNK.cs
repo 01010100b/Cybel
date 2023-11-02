@@ -11,6 +11,7 @@ namespace Cybel.Games
     public class MNK : IGame<MNK>
     {
         public static MNK GetTicTacToe() => new(3, 3, 3, 2);
+        public static MNK GetConnectFour() => new(7, 6, 4, 2, true);
 
         public ulong Id => GetId();
         public int NumberOfPlayers => Players;
@@ -19,6 +20,8 @@ namespace Cybel.Games
         public int Rows { get; private set; }
         public int Connected { get; private set; }
         public int Players { get; private set; }
+        public bool Drops { get; private set; }
+        private List<int> Dirs { get; }
 
         private int[] Board { get; set; }
         private int Player { get; set; }
@@ -26,13 +29,23 @@ namespace Cybel.Games
         private int Winner { get; set; }
         private Zobrist Zobrist { get; }
 
-        public MNK(int columns, int rows, int connected, int players) 
+        public MNK(int columns, int rows, int connected, int players, bool drops = false) 
         {
             Columns = Math.Max(1, columns);
             Rows = Math.Max(1, rows);
             Connected = Math.Max(1, connected);
             Players = Math.Max(1, players);
+            Drops = drops;
+            Dirs = new()
+            {
+                -1, 1, 
+                Columns, -Columns,
+                Columns - 1, -Columns + 1,
+                -Columns - 1, Columns + 1
+            };
+
             Board = new int[Columns * Rows];
+            Array.Fill(Board, -1);
             Player = 0;
             Terminal = false;
             Winner = -1;
@@ -44,7 +57,7 @@ namespace Cybel.Games
 
         public MNK Copy()
         {
-            var mnk = new MNK(Columns, Rows, Connected, Players);
+            var mnk = new MNK(Columns, Rows, Connected, Players, Drops);
             CopyTo(mnk);
 
             return mnk;
@@ -56,6 +69,9 @@ namespace Cybel.Games
             other.Rows = Rows;
             other.Connected = Connected;
             other.Players = Players;
+            other.Drops = Drops;
+            other.Dirs.Clear();
+            other.Dirs.AddRange(Dirs);
             
             other.Player = Player;
             other.Terminal = Terminal;
@@ -77,25 +93,53 @@ namespace Cybel.Games
 
             for (int i = 0; i < Board.Length; i++)
             {
-                var player = Board[i];
+                var player = Board[i] + 1;
                 Zobrist.Flip(player, i);
             }
 
             return Zobrist.Hash;
         }
 
-        public IEnumerable<Move> GetMoves()
+        public void AddMoves(List<Move> moves)
         {
             if (IsTerminal())
             {
-                yield break;
+                return;
             }
 
-            for (int i = 0; i < Board.Length; i++)
+            if (Drops)
             {
-                if (Board[i] == 0)
+                for (int column = 0; column < Columns; column++)
                 {
-                    yield return new((ulong)i);
+                    var block = Rows;
+
+                    for (int row = 0; row < Rows; row++)
+                    {
+                        var index = (row * Columns) + column;
+
+                        if (Board[index] != -1)
+                        {
+                            block = row;
+
+                            break;
+                        }
+                    }
+
+                    if (block > 0)
+                    {
+                        var index = ((block - 1) * Columns) + column;
+                        moves.Add(new((ulong)index));
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Board.Length; i++)
+                {
+                    if (Board[i] == -1)
+                    {
+                        moves.Add(new((ulong)i));
+                    }
                 }
             }
         }
@@ -112,13 +156,13 @@ namespace Cybel.Games
             }
 
             var pos = (int)move.Hash;
-            Board[pos] = Player + 1;
+            Board[pos] = Player;
             Player = (Player + 1) % NumberOfPlayers;
             Terminal = true;
 
             for (int i = 0; i < Board.Length; i++)
             {
-                if (Board[i] == 0)
+                if (Board[i] == -1)
                 {
                     Terminal = false;
 
@@ -130,7 +174,7 @@ namespace Cybel.Games
 
             if (HasWon(pos))
             {
-                Winner = Board[pos] - 1;
+                Winner = Board[pos];
                 Terminal = true;
             }
         }
@@ -141,7 +185,14 @@ namespace Cybel.Games
 
             for (int i = 0; i < Board.Length; i++)
             {
-                sb.Append(Board[i]);
+                var ch = "-";
+
+                if (Board[i] >= 0)
+                {
+                    ch = Board[i].ToString();
+                }
+
+                sb.Append(ch);
 
                 if (i % Columns == Columns - 1)
                 {
@@ -156,50 +207,38 @@ namespace Cybel.Games
         {
             var id = Zobrist.GetHash(GetType());
 
-            id ^= (ulong)Columns.GetHashCode() << 30;
-            id ^= (ulong)Rows.GetHashCode() << 20;
-            id ^= (ulong)Connected.GetHashCode() << 10;
-            id ^= (ulong)Players.GetHashCode();
+            id ^= (ulong)Columns.GetHashCode() << 32;
+            id ^= (ulong)Rows.GetHashCode() << 24;
+            id ^= (ulong)Connected.GetHashCode() << 16;
+            id ^= (ulong)Players.GetHashCode() << 8;
+            id ^= (ulong)Drops.GetHashCode();
 
             return id;
         }
 
         private bool HasWon(int pos)
         {
-            var dirs = new List<(int, int)>()
-            {
-                (-1, 1),
-                (Columns, -Columns),
-                (Columns - 1, -Columns + 1),
-                (-Columns - 1, Columns + 1)
-            };
-
-            var parts = new List<int>();
             var color = Board[pos];
 
-            foreach (var dir in dirs)
+            for (int dir = 0; dir < Dirs.Count; dir += 2)
             {
-                parts.Clear();
-                parts.Add(dir.Item1);
-                parts.Add(dir.Item2);
-
                 var count = 1;
 
-                foreach (var part in parts)
+                for (int part = 0; part < 2; part++)
                 {
-                    var side = (part + Columns + Columns) % Columns;
+                    var offset = Dirs[dir + part];
+                    var side = (offset + Columns + Columns) % Columns;
                     var next = pos;
 
                     while (true)
                     {
-                        next += part;
+                        next += offset;
 
                         if (next < 0 || next >= Board.Length)
                         {
                             break;
                         }
-
-                        if (side == Columns - 1 && next % Columns == Columns - 1)
+                        else if (side == Columns - 1 && next % Columns == Columns - 1)
                         {
                             break;
                         }
@@ -207,19 +246,18 @@ namespace Cybel.Games
                         {
                             break;
                         }
-
-                        if (Board[next] != color)
+                        else if (Board[next] != color)
                         {
                             break;
                         }
 
                         count++;
                     }
-                }
 
-                if (count >= Connected)
-                {
-                    return true;
+                    if (count >= Connected)
+                    {
+                        return true;
+                    }
                 }
             }
 

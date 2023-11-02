@@ -13,9 +13,11 @@ namespace Cybel.Core.Players
         {
             public List<int> Pips { get; } = new();
 
-            public Matchbox(int moves, int pips)
+            public void Initialize(int moves, int pips)
             {
-                for (int i = 0; i < moves; i++)
+                Pips.Clear();
+
+                for (int i  = 0; i < moves; i++)
                 {
                     Pips.Add(pips);
                 }
@@ -32,14 +34,13 @@ namespace Cybel.Core.Players
         {
             RunSimulations(game.Copy(), time / Math.Max(1.1, Parameters.TimeMod));
 
-            var entry = Table.GetEntry(game);
-            entry.Data ??= new(entry.Moves.Count, Parameters.InitialPips);
+            var entry = GetTableEntry(game);
             var scores = new Dictionary<Move, double>();
 
             for (int i = 0; i < entry.Moves.Count; i++)
             {
                 var move = entry.Moves[i];
-                var score = (double)entry.Data.Pips[i];
+                var score = (double)entry.Data!.Pips[i];
                 scores.Add(move, score);
             }
 
@@ -63,9 +64,8 @@ namespace Cybel.Core.Players
 
                 while (!g.IsTerminal())
                 {
-                    var entry = Table.GetEntry(g);
-                    entry.Data ??= new(entry.Moves.Count, Parameters.InitialPips);
-                    var choice = RNG.NextDouble() < Parameters.ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data);
+                    var entry = GetTableEntry(g);
+                    var choice = RNG.NextDouble() < Parameters.ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data!);
                     var move = entry.Moves[choice];
                     choices.Add(new(entry, choice));
                     g.Perform(move);
@@ -130,6 +130,19 @@ namespace Cybel.Core.Players
             }
 
             return RNG.Next(matchbox.Pips.Count);
+        }
+
+        private Table<Matchbox>.Entry GetTableEntry(IGame game)
+        {
+            var entry = Table.GetEntry(game);
+
+            if (entry.Data is null)
+            {
+                entry.Data = ObjectPool.Get(() => new Matchbox());
+                entry.Data.Initialize(entry.Moves.Count, Parameters.InitialPips);
+            }
+
+            return entry;
         }
 
         public override string ToString()

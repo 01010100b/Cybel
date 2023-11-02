@@ -58,6 +58,7 @@ namespace Cybel.Core
             }
 
             var times = players.Select(x => TimeBank).ToList();
+            var moves = new List<Move>();
             var g = game.Copy();
             var sw = new Stopwatch();
 
@@ -71,10 +72,12 @@ namespace Cybel.Core
                 var move = players[player].ChooseMove(g, times[player]);
                 sw.Stop();
                 times[player] -= sw.Elapsed;
+                moves.Clear();
+                game.AddMoves(moves);
 
-                if (!game.GetMoves().Contains(move))
+                if (!moves.Contains(move))
                 {
-                    move = game.GetMoves().First();
+                    move = moves.First();
                 }
 
                 game.Perform(move);

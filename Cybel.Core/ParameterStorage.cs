@@ -12,6 +12,14 @@ namespace Cybel.Core
     {
         private static string Folder => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "params");
 
+        static ParameterStorage()
+        {
+            if (!Directory.Exists(Folder))
+            {
+                Directory.CreateDirectory(Folder);
+            }
+        }
+
         public static T Load<T>(IGame game) where T : new()
         {
             var file = Path.Combine(Folder, GetId<T>(game) + ".json");
@@ -31,11 +39,6 @@ namespace Cybel.Core
 
         public static void Save<T>(IGame game, T parameters)
         {
-            if (!Directory.Exists(Folder))
-            {
-                Directory.CreateDirectory(Folder);
-            }
-
             var options = new JsonSerializerOptions() { WriteIndented = true };
             var json = JsonSerializer.Serialize(parameters, options);
             var file = Path.Combine(Folder, GetId<T>(game) + ".json");

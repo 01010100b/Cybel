@@ -11,11 +11,13 @@ namespace Cybel.Core
         public virtual Move ChooseMove(IGame game, TimeSpan time)
         {
             var scores = ScoreMoves(game, time);
+            var moves = new List<Move>();
+            game.AddMoves(moves);
 
             Move? best = null;
             var score = double.MinValue;
 
-            foreach (var move in game.GetMoves())
+            foreach (var move in moves)
             {
                 if (scores.TryGetValue(move, out var s))
                 {
@@ -38,3 +40,4 @@ namespace Cybel.Core
         public abstract Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time);
     }
 }
+    

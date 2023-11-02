@@ -13,8 +13,10 @@ namespace Cybel.Core.Players
         public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
             var scores = new Dictionary<Move, double>();
+            var moves = new List<Move>();
+            game.AddMoves(moves);
 
-            foreach (var move in game.GetMoves())
+            foreach (var move in moves)
             {
                 scores.Add(move, 0);
             }
