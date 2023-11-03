@@ -11,7 +11,7 @@ namespace Cybel.Core.Players
     {
         private class Matchbox
         {
-            public List<int> Pips { get; } = new();
+            public List<double> Pips { get; } = new();
 
             public void Initialize(int moves, int pips)
             {
@@ -32,7 +32,8 @@ namespace Cybel.Core.Players
 
         public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
-            RunSimulations(game.Copy(), time / Math.Max(1.1, Parameters.TimeMod));
+            Parameters.Validate();
+            RunSimulations(game.Copy(), time / Parameters.TimeMod);
 
             var entry = GetTableEntry(game);
             var scores = new Dictionary<Move, double>();
@@ -51,7 +52,7 @@ namespace Cybel.Core.Players
         {
             var g = game.Copy();
             var choices = new List<KeyValuePair<Table<Matchbox>.Entry, int>>();
-            var winners = new List<int>();
+            var scores = new List<double>();
             var sw = new Stopwatch();
             sw.Start();
 
@@ -60,7 +61,7 @@ namespace Cybel.Core.Players
                 Simulations++;
                 game.CopyTo(g);
                 choices.Clear();
-                winners.Clear();
+                scores.Clear();
 
                 while (!g.IsTerminal())
                 {
@@ -73,38 +74,20 @@ namespace Cybel.Core.Players
 
                 for (int i = 0; i < g.NumberOfPlayers; i++)
                 {
-                    if (g.IsWinningPlayer(i))
-                    {
-                        winners.Add(i);
-                    }
-                }
-
-                if (winners.Count == 0)
-                {
-                    continue;
+                    scores.Add(Math.Clamp(g.GetPlayerScore(i), 0, 1));
                 }
 
                 for (int i = 0; i < choices.Count; i++)
                 {
-                    var depth = Math.Max(1, choices.Count - i);
-                    var chance = Math.Pow(depth, Parameters.PipChangeMod);
-
-                    if (RNG.NextDouble() > chance)
-                    {
-                        continue;
-                    }
-
                     var choice = choices[i];
                     var pips = choice.Key.Data!.Pips;
+                    var score = (scores[choice.Key.Player] * 2) - 1;
+                    var depth = choices.Count - i;
+                    score *= Math.Pow(depth, Parameters.PipChangeMod);
 
-                    if (winners.Contains(choice.Key.Player))
-                    {
-                        pips[choice.Value] = Math.Min(Parameters.MaxPips, pips[choice.Value] + 1);
-                    }
-                    else
-                    {
-                        pips[choice.Value] = Math.Max(0, pips[choice.Value] - 1);
-                    }
+                    score += pips[choice.Value];
+                    score = Math.Clamp(score, 0, Parameters.MaxPips);
+                    pips[choice.Value] = score;
                 }
             }
         }
@@ -115,8 +98,8 @@ namespace Cybel.Core.Players
 
             if (total > 0)
             {
-                var goal = RNG.Next(total);
-                var acc = 0;
+                var goal = RNG.NextDouble() * total;
+                var acc = 0d;
 
                 for (int i = 0; i < matchbox.Pips.Count; i++)
                 {

@@ -13,9 +13,9 @@ namespace Cybel.Core
         public TimeSpan TimeBank { get; set; } = TimeSpan.FromSeconds(1);
         public TimeSpan TimePerMove { get; set; } = TimeSpan.FromSeconds(0.1);
 
-        public IReadOnlyDictionary<Player, int> Play(IGame game, IReadOnlyList<Player> players, int games)
+        public IReadOnlyDictionary<Player, double> Play(IGame game, IReadOnlyList<Player> players, int games)
         {
-            var results = new Dictionary<Player, int>();
+            var results = new Dictionary<Player, double>();
 
             foreach (var player in players)
             {
@@ -29,23 +29,18 @@ namespace Cybel.Core
 
             for (int i = 0; i < games; i++)
             {
-                var winners = PlayGame(players.OrderBy(x => Random.Shared.Next()).ToList(), game.Copy());
+                var scores = PlayGame(players.OrderBy(x => Random.Shared.Next()).ToList(), game.Copy());
 
-                foreach (var winner in winners)
+                foreach (var score in scores)
                 {
-                    results[winner]++;
+                    results[score.Key] += score.Value;
                 }
-            }
-
-            foreach (var player in players.OfType<IParametrized>())
-            {
-                player.SaveParameters(game);
             }
 
             return results;
         }
 
-        private List<Player> PlayGame(IReadOnlyList<Player> players, IGame game)
+        private Dictionary<Player, double> PlayGame(IReadOnlyList<Player> players, IGame game)
         {
             if (players.Count != game.NumberOfPlayers)
             {
@@ -94,17 +89,14 @@ namespace Cybel.Core
                 }
             }
 
-            var winners = new List<Player>();
+            var scores = new Dictionary<Player, double>();
 
             for (int i = 0; i < players.Count; i++)
             {
-                if (game.IsWinningPlayer(i))
-                {
-                    winners.Add(players[i]);
-                }
+                scores.Add(players[i], Math.Clamp(game.GetPlayerScore(i), 0, 1));
             }
 
-            return winners;
+            return scores;
         }
     }
 }

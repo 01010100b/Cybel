@@ -82,7 +82,7 @@ namespace Cybel.Core
 
         private void Trim()
         {
-            var count = Entries.Count / 10;
+            var count = Entries.Count / 4;
 
             if (count <= 0)
             {

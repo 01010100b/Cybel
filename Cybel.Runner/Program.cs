@@ -9,14 +9,14 @@ namespace Cybel.Runner
     {
         static void Main(string[] args)
         {
-            var game = MNK.GetConnectFour();
+            var game = MNK.GetTicTacToe();
             RunTournament(game.Copy(), 1, true);
             RunTournament(game.Copy(), 100);
         }
 
         private static void RunTournament(IGame game, int games, bool verbose = false)
         {
-            Console.WriteLine($"running tournament of {games} games...");
+            Console.WriteLine($"Running tournament of {games} games...");
             var sw = new Stopwatch();
             sw.Start();
             var runner = new Core.Runner() { WriteToConsole = verbose };
@@ -31,13 +31,12 @@ namespace Cybel.Runner
             for (int i = 0; i < players.Count; i++)
             {
                 var player = players[i];
-                var wins = results[player];
-                var perc = wins / (double)games;
+                var score = results[player] / games;
 
-                Console.WriteLine($"{i} {player.GetType().Name} wins {wins:N0} ({perc:P0})");
+                Console.WriteLine($"{i} {player.GetType().Name} score {score:P0}");
             }
 
-            Console.WriteLine($"tournament took {sw.Elapsed}");
+            Console.WriteLine($"Tournament took {sw.Elapsed}");
             Console.WriteLine();
         }
     }

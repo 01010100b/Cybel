@@ -9,7 +9,7 @@ namespace Cybel.Core
 {
     public static class ObjectPool
     {
-        private const int MAX_POOL_SIZE = 100000;
+        private const int MAX_POOL_SIZE = 1000000;
 
         private static ConcurrentDictionary<Type, ConcurrentQueue<object>> Pools { get; } = new();
 

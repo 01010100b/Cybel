@@ -14,7 +14,7 @@ namespace Cybel.Core
         public ulong GetStateHash();
         public int GetCurrentPlayer();
         public bool IsTerminal();
-        public bool IsWinningPlayer(int player);
+        public double GetPlayerScore(int player);
 
         public void AddMoves(List<Move> moves);
         public void Perform(Move move);

@@ -1,5 +1,4 @@
 ﻿using Cybel.Core;
-using Cybel.Games.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -146,7 +145,21 @@ namespace Cybel.Games
 
         public bool IsTerminal() => Terminal;
 
-        public bool IsWinningPlayer(int player) => Winner == player;
+        public double GetPlayerScore(int player)
+        {
+            if (Winner == -1)
+            {
+                return 1d / NumberOfPlayers;
+            }
+            else if (Winner == player)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
 
         public void Perform(Move move)
         {
