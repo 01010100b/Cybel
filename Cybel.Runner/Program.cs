@@ -1,6 +1,8 @@
 ﻿using Cybel.Core;
 using Cybel.Core.Players;
 using Cybel.Games;
+using Cybel.Players.Matchbox;
+using Cybel.Players.MCTS;
 using System.Diagnostics;
 
 namespace Cybel.Runner
@@ -9,7 +11,7 @@ namespace Cybel.Runner
     {
         static void Main(string[] args)
         {
-            var game = MNK.GetTicTacToe();
+            var game = MNK.GetConnectFour();
             RunTournament(game.Copy(), 1, true);
             RunTournament(game.Copy(), 100);
         }
@@ -22,8 +24,8 @@ namespace Cybel.Runner
             var runner = new Core.Runner() { WriteToConsole = verbose };
             var players = new List<Player>()
             {
-                new RandomPlayer(),
-                new MatchboxPlayer()
+                new MatchboxPlayer(),
+                new MCTSPlayer()
             };
 
             var results = runner.Play(game, players, games);

@@ -4,29 +4,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Cybel.Core;
 
-namespace Cybel.Core.Players
+namespace Cybel.Players.Matchbox
 {
     public class MatchboxPlayer : Player, IParametrized<MatchboxPlayerParameters>
     {
-        private class Matchbox
-        {
-            public List<double> Pips { get; } = new();
-
-            public void Initialize(int moves, int pips)
-            {
-                Pips.Clear();
-
-                for (int i  = 0; i < moves; i++)
-                {
-                    Pips.Add(pips);
-                }
-            }
-        }
-
         public MatchboxPlayerParameters Parameters { get; set; } = new();
 
-        private Table<Matchbox> Table { get; } = new();
+        private Table<MatchboxData> Table { get; } = new();
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
@@ -51,7 +37,7 @@ namespace Cybel.Core.Players
         private void RunSimulations(IGame game, TimeSpan time)
         {
             var g = game.Copy();
-            var choices = new List<KeyValuePair<Table<Matchbox>.Entry, int>>();
+            var choices = new List<KeyValuePair<Table<MatchboxData>.Entry, int>>();
             var scores = new List<double>();
             var sw = new Stopwatch();
             sw.Start();
@@ -81,7 +67,7 @@ namespace Cybel.Core.Players
                 {
                     var choice = choices[i];
                     var pips = choice.Key.Data!.Pips;
-                    var score = (scores[choice.Key.Player] * 2) - 1;
+                    var score = scores[choice.Key.Player] * 2 - 1;
                     var depth = choices.Count - i;
                     score *= Math.Pow(depth, Parameters.PipChangeMod);
 
@@ -92,7 +78,7 @@ namespace Cybel.Core.Players
             }
         }
 
-        private int Choose(Matchbox matchbox)
+        private int Choose(MatchboxData matchbox)
         {
             var total = matchbox.Pips.Sum();
 
@@ -115,13 +101,13 @@ namespace Cybel.Core.Players
             return RNG.Next(matchbox.Pips.Count);
         }
 
-        private Table<Matchbox>.Entry GetTableEntry(IGame game)
+        private Table<MatchboxData>.Entry GetTableEntry(IGame game)
         {
             var entry = Table.GetEntry(game);
 
             if (entry.Data is null)
             {
-                entry.Data = ObjectPool.Get(() => new Matchbox());
+                entry.Data = ObjectPool.Get(() => new MatchboxData());
                 entry.Data.Initialize(entry.Moves.Count, Parameters.InitialPips);
             }
 

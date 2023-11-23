@@ -39,7 +39,7 @@ namespace Cybel.Core
             }
         }
 
-        public int MaxSize { get; set; } = 1000000;
+        public int MaxSize { get; set; } = 1_000_000;
 
         private Dictionary<ulong, Entry> Entries { get; } = new();
         private int Visit { get; set; } = 0;

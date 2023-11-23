@@ -9,7 +9,7 @@ namespace Cybel.Core
 {
     public static class ObjectPool
     {
-        private const int MAX_POOL_SIZE = 1000000;
+        public static int MaxSize { get; set; } = 1_000_000;
 
         private static ConcurrentDictionary<Type, ConcurrentQueue<object>> Pools { get; } = new();
 
@@ -38,7 +38,7 @@ namespace Cybel.Core
         {
             var pool = GetPool(obj.GetType());
 
-            if (pool.Count < MAX_POOL_SIZE)
+            if (pool.Count < Math.Max(10, MaxSize))
             {
                 pool.Enqueue(obj);
             }

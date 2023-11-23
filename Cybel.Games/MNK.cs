@@ -218,13 +218,13 @@ namespace Cybel.Games
 
         private ulong GetId()
         {
-            var id = Zobrist.GetHash(GetType());
+            var id = Zobrist.GetHash(GetType().Name);
 
-            id ^= (ulong)Columns.GetHashCode() << 32;
-            id ^= (ulong)Rows.GetHashCode() << 24;
-            id ^= (ulong)Connected.GetHashCode() << 16;
-            id ^= (ulong)Players.GetHashCode() << 8;
-            id ^= (ulong)Drops.GetHashCode();
+            id ^= Zobrist.GetHash($"columns: {Columns}");
+            id ^= Zobrist.GetHash($"rows: {Rows}");
+            id ^= Zobrist.GetHash($"connected: {Connected}");
+            id ^= Zobrist.GetHash($"players: {Players}");
+            id ^= Zobrist.GetHash($"drops: {Drops}");
 
             return id;
         }

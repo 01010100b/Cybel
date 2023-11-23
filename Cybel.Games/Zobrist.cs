@@ -10,9 +10,9 @@ namespace Cybel.Games
 {
     public class Zobrist
     {
-        public static ulong GetHash(Type type)
+        public static ulong GetHash(string s)
         {
-            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(type.Name));
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(s));
             Debug.Assert(bytes.Length >= sizeof(ulong));
 
             return BitConverter.ToUInt64(bytes);
