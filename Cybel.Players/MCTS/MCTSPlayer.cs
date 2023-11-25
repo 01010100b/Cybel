@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Cybel.Players.MCTS
 {
-    public class MCTSPlayer : Player, IParametrized<MCTSPlayerParameters>
+    public class MCTSPlayer : Player
     {
-        public MCTSPlayerParameters Parameters { get; set; } = new();
+        public double C { get; set; } = 1.4;
 
         private Table<MCTSData> Table { get; } = new();
         private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
@@ -19,16 +19,15 @@ namespace Cybel.Players.MCTS
 
         public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
-            Parameters.Validate();
+            C = Math.Clamp(C, 0, double.MaxValue);
 
-            var max_time = time / Parameters.TimeMod;
             var sw = new Stopwatch();
             sw.Start();
 
             var g = game.Copy();
             RunSimulation(g);
 
-            while (sw.Elapsed < max_time)
+            while (sw.Elapsed < time)
             {
                 game.CopyTo(g);
                 RunSimulation(g);
@@ -53,7 +52,7 @@ namespace Cybel.Players.MCTS
             var choices = ObjectPool.Get(() => new Dictionary<Table<MCTSData>.Entry, int>(), x => x.Clear());
             var moves = ObjectPool.Get(() => new List<Move>(), x => x.Clear());
 
-            // selection
+            // selection & expansion
 
             while (true)
             {
@@ -63,7 +62,7 @@ namespace Cybel.Players.MCTS
                 }
 
                 var entry = GetTableEntry(game);
-                var choice = entry.Data!.Choose(Parameters.C);
+                var choice = entry.Data!.Choose(C);
                 choices.Add(entry, choice);
                 moves.Clear();
                 game.AddMoves(moves);

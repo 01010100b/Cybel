@@ -8,9 +8,12 @@ using Cybel.Core;
 
 namespace Cybel.Players.Matchbox
 {
-    public class MatchboxPlayer : Player, IParametrized<MatchboxPlayerParameters>
+    public class MatchboxPlayer : Player
     {
-        public MatchboxPlayerParameters Parameters { get; set; } = new();
+        public double ExploreChance { get; set; } = 0.7;
+        public int InitialPips { get; set; } = 1000;
+        public int MaxPips { get; set; } = 10000;
+        public double PipChangeMod { get; set; } = -0.3;
 
         private Table<MatchboxData> Table { get; } = new();
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
@@ -18,8 +21,12 @@ namespace Cybel.Players.Matchbox
 
         public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
-            Parameters.Validate();
-            RunSimulations(game.Copy(), time / Parameters.TimeMod);
+            ExploreChance = Math.Clamp(ExploreChance, 0, 1);
+            InitialPips = Math.Clamp(InitialPips, 0, int.MaxValue);
+            MaxPips = Math.Clamp(MaxPips, 0, int.MaxValue);
+            PipChangeMod = Math.Clamp(PipChangeMod, double.MinValue, 0);
+
+            RunSimulations(game.Copy(), time);
 
             var entry = GetTableEntry(game);
             var scores = new Dictionary<Move, double>();
@@ -52,7 +59,7 @@ namespace Cybel.Players.Matchbox
                 while (!g.IsTerminal())
                 {
                     var entry = GetTableEntry(g);
-                    var choice = RNG.NextDouble() < Parameters.ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data!);
+                    var choice = RNG.NextDouble() < ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data!);
                     var move = entry.Moves[choice];
                     choices.Add(new(entry, choice));
                     g.Perform(move);
@@ -69,10 +76,10 @@ namespace Cybel.Players.Matchbox
                     var pips = choice.Key.Data!.Pips;
                     var score = scores[choice.Key.Player] * 2 - 1;
                     var depth = choices.Count - i;
-                    score *= Math.Pow(depth, Parameters.PipChangeMod);
+                    score *= Math.Pow(depth, PipChangeMod);
 
                     score += pips[choice.Value];
-                    score = Math.Clamp(score, 0, Parameters.MaxPips);
+                    score = Math.Clamp(score, 0, MaxPips);
                     pips[choice.Value] = score;
                 }
             }
@@ -108,7 +115,7 @@ namespace Cybel.Players.Matchbox
             if (entry.Data is null)
             {
                 entry.Data = ObjectPool.Get(() => new MatchboxData());
-                entry.Data.Initialize(entry.Moves.Count, Parameters.InitialPips);
+                entry.Data.Initialize(entry.Moves.Count, InitialPips);
             }
 
             return entry;

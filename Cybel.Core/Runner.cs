@@ -13,18 +13,18 @@ namespace Cybel.Core
         public TimeSpan TimeBank { get; set; } = TimeSpan.FromSeconds(1);
         public TimeSpan TimePerMove { get; set; } = TimeSpan.FromSeconds(0.1);
 
-        public IReadOnlyDictionary<Player, double> Play(IGame game, IReadOnlyList<Player> players, int games)
+        public Dictionary<Player, double> Play(IGame game, IReadOnlyList<Player> players, int games)
         {
+            if (players.Count != game.NumberOfPlayers)
+            {
+                throw new Exception("Not the correct number of players.");
+            }
+
             var results = new Dictionary<Player, double>();
 
             foreach (var player in players)
             {
                 results.Add(player, 0);
-                
-                if (player is IParametrized p)
-                {
-                    p.LoadParameters(game);
-                }
             }
 
             for (int i = 0; i < games; i++)
@@ -42,11 +42,6 @@ namespace Cybel.Core
 
         private Dictionary<Player, double> PlayGame(IReadOnlyList<Player> players, IGame game)
         {
-            if (players.Count != game.NumberOfPlayers)
-            {
-                throw new Exception("Not the correct number of players.");
-            }
-
             if (WriteToConsole)
             {
                 Console.WriteLine(game);
@@ -60,22 +55,30 @@ namespace Cybel.Core
             while (!game.IsTerminal())
             {
                 var player = game.GetCurrentPlayer();
-                times[player] += TimePerMove;
-                game.CopyTo(g);
-
-                sw.Restart();
-                var move = players[player].ChooseMove(g, times[player]);
-                sw.Stop();
-                times[player] -= sw.Elapsed;
                 moves.Clear();
                 game.AddMoves(moves);
 
-                if (!moves.Contains(move))
+                if (times[player] > TimeSpan.Zero)
                 {
-                    move = moves.First();
-                }
+                    times[player] += TimePerMove;
+                    game.CopyTo(g);
 
-                game.Perform(move);
+                    sw.Restart();
+                    var move = players[player].ChooseMove(g, times[player]);
+                    sw.Stop();
+                    times[player] -= sw.Elapsed;
+
+                    if (!moves.Contains(move))
+                    {
+                        move = moves.First();
+                    }
+
+                    game.Perform(move);
+                }
+                else
+                {
+                    game.Perform(moves.First());
+                }
 
                 if (WriteToConsole)
                 {
