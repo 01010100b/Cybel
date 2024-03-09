@@ -8,31 +8,12 @@ namespace Cybel.Core
 {
     public abstract class Player
     {
-        public double TimeMod { get; set; } = 2;
-        public Dictionary<ulong, ulong> Openings { get; } = new();
+        protected abstract ITimeManager TimeManager { get; }
 
         public virtual Move ChooseMove(IGame game, TimeSpan time_remaining)
         {
-            TimeMod = Math.Clamp(TimeMod, 1, double.MaxValue);
-
-            var moves = new List<Move>();
-            game.AddMoves(moves);
-
-            if (Openings is not null)
-            {
-                if (Openings.TryGetValue(game.GetStateHash(), out var hash))
-                {
-                    foreach (var move in moves)
-                    {
-                        if (move.Hash == hash)
-                        {
-                            return move;
-                        }
-                    }
-                }
-            }
-
-            var scores = ScoreMoves(game, time_remaining / TimeMod);
+            var moves = game.GetMoves().ToList();
+            var scores = ScoreMoves(game, TimeManager.GetTimeForNextMove(time_remaining));
             Move? best = null;
             var score = double.MinValue;
 

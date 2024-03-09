@@ -1,8 +1,7 @@
 ﻿using Cybel.Core;
 using Cybel.Core.Players;
 using Cybel.Games;
-using Cybel.Players.Matchbox;
-using Cybel.Players.MCTS;
+using Cybel.Players;
 using System.Diagnostics;
 
 namespace Cybel.Runner

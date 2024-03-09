@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cybel.Players.MCTS
+namespace Cybel.Players
 {
     public class MCTSData
     {
@@ -13,12 +13,12 @@ namespace Cybel.Players.MCTS
             public double Score { get; set; } = 0;
             public int Visits { get; set; } = 0;
 
-            public MoveData() 
+            public MoveData()
             {
             }
         }
 
-        public List<MoveData> Datas { get; } = new();
+        public List<MoveData> Datas { get; } = [];
         public int TotalVisits => Datas.Sum(x => x.Visits);
 
         public void Initialize(int moves)
@@ -53,7 +53,7 @@ namespace Cybel.Players.MCTS
             for (int i = 0; i < Datas.Count; i++)
             {
                 var data = Datas[i];
-                var score = (data.Score / data.Visits) + (c * Math.Sqrt(Math.Log(total) / data.Visits));
+                var score = data.Score / data.Visits + c * Math.Sqrt(Math.Log(total) / data.Visits);
 
                 if (score > best_score)
                 {

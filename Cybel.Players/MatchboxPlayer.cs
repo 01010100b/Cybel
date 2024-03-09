@@ -5,27 +5,43 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Cybel.Core;
+using Cybel.Learning;
+using Microsoft.VisualBasic;
 
-namespace Cybel.Players.Matchbox
+namespace Cybel.Players
 {
-    public class MatchboxPlayer : Player
+    public class MatchboxPlayer : LearningPlayer
     {
-        public double ExploreChance { get; set; } = 0.7;
-        public int InitialPips { get; set; } = 1000;
-        public int MaxPips { get; set; } = 10000;
-        public double PipChangeMod { get; set; } = -0.3;
+        protected override ITimeManager TimeManager => new BasicTimeManager();
+
+        private int MaxPips { get; set; } = 10000; // Math.Clamp(max_pips, 0, int.MaxValue);
+        private int InitialPips { get; set; } = 1000; // Math.Clamp(initial_pips, 0, int.MaxValue);
+        private double ExploreChance { get; set; } = 0.7; // Math.Clamp(explore_chance, 0, 1);
+        private double PipChangeMod { get; set; } = -0.3; // Math.Clamp(pip_change_mod, double.MinValue, 0);
 
         private Table<MatchboxData> Table { get; } = new();
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
+        public override IEnumerable<Parameter> GetParameters()
+        {
+            yield return new("MaxPips", 0, int.MaxValue, 10000);
+            yield return new("InitialPips", 0, int.MaxValue, 1000);
+            yield return new("ExploreChance", 0, 1, 0.7);
+            yield return new("PipChangeMod", double.MinValue, 0, -0.3);
+            yield return new("TimeMod", 2, 100, 2);
+        }
+
+        protected override void OnParameterChanged(string name)
+        {
+            if (name == "TimeMod")
+            {
+                ((BasicTimeManager)TimeManager).TimeMod = GetParameter("TimeMod");
+            }
+        }
+
         public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
-            ExploreChance = Math.Clamp(ExploreChance, 0, 1);
-            InitialPips = Math.Clamp(InitialPips, 0, int.MaxValue);
-            MaxPips = Math.Clamp(MaxPips, 0, int.MaxValue);
-            PipChangeMod = Math.Clamp(PipChangeMod, double.MinValue, 0);
-
             RunSimulations(game.Copy(), time);
 
             var entry = GetTableEntry(game);
@@ -67,7 +83,7 @@ namespace Cybel.Players.Matchbox
 
                 for (int i = 0; i < g.NumberOfPlayers; i++)
                 {
-                    scores.Add(Math.Clamp(g.GetPlayerScore(i), 0, 1));
+                    scores.Add(g.GetPlayerScore(i));
                 }
 
                 for (int i = 0; i < choices.Count; i++)

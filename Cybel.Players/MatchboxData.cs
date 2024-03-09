@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cybel.Players.Matchbox
+namespace Cybel.Players
 {
     public class MatchboxData
     {

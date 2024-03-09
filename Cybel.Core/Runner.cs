@@ -56,7 +56,7 @@ namespace Cybel.Core
             {
                 var player = game.GetCurrentPlayer();
                 moves.Clear();
-                game.AddMoves(moves);
+                moves.AddRange(game.GetMoves());
 
                 if (times[player] > TimeSpan.Zero)
                 {

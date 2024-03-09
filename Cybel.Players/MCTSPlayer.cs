@@ -1,5 +1,5 @@
 ﻿using Cybel.Core;
-using Cybel.Players.Matchbox;
+using Cybel.Learning;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,20 +7,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cybel.Players.MCTS
+namespace Cybel.Players
 {
-    public class MCTSPlayer : Player
+    public class MCTSPlayer : LearningPlayer
     {
-        public double C { get; set; } = 1.4;
+        protected override ITimeManager TimeManager => new BasicTimeManager();
 
+        private double C => GetParameter("C");
         private Table<MCTSData> Table { get; } = new();
         private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
+        public override IEnumerable<Parameter> GetParameters()
+        {
+            yield return new("C", 0, 10, 1.4);
+            yield return new("TimeMod", 2, 100, 2);
+        }
+
+        protected override void OnParameterChanged(string name)
+        {
+            if (name == "TimeMod")
+            {
+                ((BasicTimeManager)TimeManager).TimeMod = GetParameter("TimeMod");
+            }
+        }
+
         public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
         {
-            C = Math.Clamp(C, 0, double.MaxValue);
-
             var sw = Stopwatch.StartNew();
 
             var g = game.Copy();
@@ -64,7 +77,7 @@ namespace Cybel.Players.MCTS
                 var choice = entry.Data!.Choose(C);
                 choices.Add(entry, choice);
                 moves.Clear();
-                game.AddMoves(moves);
+                moves.AddRange(game.GetMoves());
                 game.Perform(moves[choice]);
 
                 if (entry.Data.TotalVisits <= 0)
@@ -78,7 +91,7 @@ namespace Cybel.Players.MCTS
             while (!game.IsTerminal())
             {
                 moves.Clear();
-                game.AddMoves(moves);
+                moves.AddRange(game.GetMoves());
                 game.Perform(moves[RNG.Next(moves.Count)]);
             }
 

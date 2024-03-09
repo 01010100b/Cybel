@@ -10,6 +10,8 @@ namespace Cybel.Core
 {
     public class Table<TData> where TData : class
     {
+        // LRU cache
+
         public class Entry
         {
             public ulong Hash { get; private set; }
@@ -35,13 +37,13 @@ namespace Cybel.Core
 
                 var moves = (List<Move>)Moves;
                 moves.Clear();
-                game.AddMoves(moves);
+                moves.AddRange(game.GetMoves());
             }
         }
 
-        public int MaxSize { get; set; } = 1_000_000;
+        public int MaxSize { get; set; } = 100_000;
 
-        private Dictionary<ulong, Entry> Entries { get; } = new();
+        private Dictionary<ulong, Entry> Entries { get; } = [];
         private int Visit { get; set; } = 0;
 
         public Entry GetEntry(IGame game)

@@ -19,7 +19,7 @@ namespace Cybel.Games
         public int Rows { get; private set; }
         public int Connected { get; private set; }
         public int Players { get; private set; }
-        public bool Drops { get; private set; }
+        public bool Drops { get; private set; } // whether placed pieces drop down (as in connect-four)
         private List<int> Dirs { get; }
 
         private int[] Board { get; set; }
@@ -30,18 +30,23 @@ namespace Cybel.Games
 
         public MNK(int columns, int rows, int connected, int players, bool drops = false) 
         {
-            Columns = Math.Max(1, columns);
-            Rows = Math.Max(1, rows);
-            Connected = Math.Max(1, connected);
-            Players = Math.Max(1, players);
+            ArgumentOutOfRangeException.ThrowIfLessThan(columns, 2);
+            ArgumentOutOfRangeException.ThrowIfLessThan(rows, 2);
+            ArgumentOutOfRangeException.ThrowIfLessThan(connected, 2);
+            ArgumentOutOfRangeException.ThrowIfLessThan(players, 1);
+
+            Columns = columns;
+            Rows = rows;
+            Connected = connected;
+            Players = players;
             Drops = drops;
-            Dirs = new()
-            {
+            Dirs =
+            [
                 -1, 1, 
                 Columns, -Columns,
                 Columns - 1, -Columns + 1,
                 -Columns - 1, Columns + 1
-            };
+            ];
 
             Board = new int[Columns * Rows];
             Array.Fill(Board, -1);
@@ -97,6 +102,50 @@ namespace Cybel.Games
             }
 
             return Zobrist.Hash;
+        }
+
+        public IEnumerable<Move> GetMoves()
+        {
+            if (IsTerminal())
+            {
+                yield break;
+            }
+
+            if (Drops)
+            {
+                for (int column = 0; column < Columns; column++)
+                {
+                    var block = Rows;
+
+                    for (int row = 0; row < Rows; row++)
+                    {
+                        var index = (row * Columns) + column;
+
+                        if (Board[index] != -1)
+                        {
+                            block = row;
+
+                            break;
+                        }
+                    }
+
+                    if (block > 0)
+                    {
+                        var index = ((block - 1) * Columns) + column;
+                        yield return new((ulong)index);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Board.Length; i++)
+                {
+                    if (Board[i] == -1)
+                    {
+                        yield return new((ulong)i);
+                    }
+                }
+            }
         }
 
         public void AddMoves(List<Move> moves)
@@ -218,13 +267,7 @@ namespace Cybel.Games
 
         private ulong GetId()
         {
-            var id = Zobrist.GetHash(GetType().Name);
-
-            id ^= Zobrist.GetHash($"columns: {Columns}");
-            id ^= Zobrist.GetHash($"rows: {Rows}");
-            id ^= Zobrist.GetHash($"connected: {Connected}");
-            id ^= Zobrist.GetHash($"players: {Players}");
-            id ^= Zobrist.GetHash($"drops: {Drops}");
+            var id = Zobrist.GetHash($"{GetType().Name} {Columns}.{Rows}.{Connected}.{Players}.{Drops}");
 
             return id;
         }
@@ -249,14 +292,17 @@ namespace Cybel.Games
 
                         if (next < 0 || next >= Board.Length)
                         {
+                            // moved off the board vertically
                             break;
                         }
                         else if (side == Columns - 1 && next % Columns == Columns - 1)
                         {
+                            // wrapped around the board to the left
                             break;
                         }
                         else if (side == 1 && next % Columns == 0)
                         {
+                            // wrapped around the board to the right
                             break;
                         }
                         else if (Board[next] != color)
