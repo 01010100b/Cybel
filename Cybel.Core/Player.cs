@@ -9,9 +9,9 @@ namespace Cybel.Core
     public abstract class Player
     {
         public double TimeMod { get; set; } = 2;
-        public Dictionary<ulong, ulong>? Openings { get; set; } = new();
+        public Dictionary<ulong, ulong> Openings { get; } = new();
 
-        public virtual Move ChooseMove(IGame game, TimeSpan time)
+        public virtual Move ChooseMove(IGame game, TimeSpan time_remaining)
         {
             TimeMod = Math.Clamp(TimeMod, 1, double.MaxValue);
 
@@ -32,7 +32,7 @@ namespace Cybel.Core
                 }
             }
 
-            var scores = ScoreMoves(game, time / TimeMod);
+            var scores = ScoreMoves(game, time_remaining / TimeMod);
             Move? best = null;
             var score = double.MinValue;
 

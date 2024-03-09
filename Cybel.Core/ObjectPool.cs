@@ -25,7 +25,7 @@ namespace Cybel.Core
                 {
                     reset(o);
                 }
-
+                
                 return o;
             }
             else

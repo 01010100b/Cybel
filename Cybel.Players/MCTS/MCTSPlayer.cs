@@ -21,8 +21,7 @@ namespace Cybel.Players.MCTS
         {
             C = Math.Clamp(C, 0, double.MaxValue);
 
-            var sw = new Stopwatch();
-            sw.Start();
+            var sw = Stopwatch.StartNew();
 
             var g = game.Copy();
             RunSimulation(g);

@@ -14,9 +14,9 @@ namespace Cybel.Core
         public ulong GetStateHash(); // hash of current state
         public int GetCurrentPlayer(); // current player to move
         public bool IsTerminal(); // is the current state terminal?
-        public double GetPlayerScore(int player); // score of player in terminal state
+        public double GetPlayerScore(int player); // score of player in terminal state, scores must sum to 1
 
-        public void AddMoves(List<Move> moves); // generate moves for current state
+        public void AddMoves(List<Move> moves); // generate available moves for current state
         public void Perform(Move move); // perform a given move and transition to the next state
         public void CopyTo(IGame other); // copy the current state to the other instance
         public IGame Copy(); // copy this instance
