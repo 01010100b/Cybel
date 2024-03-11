@@ -10,6 +10,8 @@ namespace Cybel.Learning
 {
     public abstract class Optimizer<TPlayer> where TPlayer : LearningPlayer, new()
     {
+        protected IReadOnlyList<Parameter> Parameters { get; } = new TPlayer().GetParameters().ToList();
+
         public abstract Dictionary<Parameter, double> Step(IGame game);
         public abstract void Load(Stream stream);
         public abstract void Save(Stream stream);
@@ -47,19 +49,11 @@ namespace Cybel.Learning
             }
         }
 
-        protected IReadOnlyList<Parameter> GetParameters()
-        {
-            var player = new TPlayer();
-
-            return player.GetParameters().ToList();
-        }
-
         protected void Randomize(Solution solution)
         {
             var rng = new Random(Guid.NewGuid().GetHashCode());
-            var parameters = GetParameters();
 
-            foreach (var parameter in parameters)
+            foreach (var parameter in Parameters)
             {
                 var value = parameter.Min + rng.NextDouble() * (parameter.Max - parameter.Min);
                 solution.Parameters[parameter.Name] = value;

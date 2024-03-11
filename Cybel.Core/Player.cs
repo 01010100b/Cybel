@@ -8,36 +8,59 @@ namespace Cybel.Core
 {
     public abstract class Player
     {
+        public Dictionary<ulong, ulong> Openings { get; } = [];
+
         protected abstract ITimeManager TimeManager { get; }
 
         public virtual Move ChooseMove(IGame game, TimeSpan time_remaining)
         {
-            var moves = game.GetMoves().ToList();
-            var scores = ScoreMoves(game, TimeManager.GetTimeForNextMove(time_remaining));
-            Move? best = null;
-            var score = double.MinValue;
+            var moves = ObjectPool.Get(() => new List<Move>(), x => x.Clear());
+            moves.AddRange(game.GetMoves());
 
-            foreach (var move in moves)
+            if (Openings.TryGetValue(game.GetStateHash(), out var opening))
             {
-                if (scores.TryGetValue(move, out var s))
+                foreach (var move in moves)
                 {
-                    if (s > score)
+                    if (move.Hash == opening)
                     {
-                        best = move;
-                        score = s;
+                        return move;
                     }
                 }
             }
 
-            if (best is null)
+            var scores = ObjectPool.Get(() => new Dictionary<Move, double>(), x => x.Clear());
+            foreach (var score in ScoreMoves(game, TimeManager.GetTimeForNextMove(time_remaining)))
+            {
+                scores.Add(score.Key, score.Value);
+            }
+
+            Move? best_move = null;
+            var best_score = double.MinValue;
+
+            foreach (var move in moves)
+            {
+                if (scores.TryGetValue(move, out var score))
+                {
+                    if (score > best_score)
+                    {
+                        best_move = move;
+                        best_score = score;
+                    }
+                }
+            }
+
+            if (best_move is null)
             {
                 throw new Exception("No available move.");
             }
 
-            return best.Value;
+            ObjectPool.Add(moves);
+            ObjectPool.Add(scores);
+
+            return best_move.Value;
         }
 
-        public abstract Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time);
+        public abstract IEnumerable<KeyValuePair<Move, double>> ScoreMoves(IGame game, TimeSpan time);
     }
 }
     

@@ -12,7 +12,7 @@ namespace Cybel.Games
         public static MNK GetTicTacToe() => new(3, 3, 3, 2);
         public static MNK GetConnectFour() => new(7, 6, 4, 2, true);
 
-        public ulong Id => GetId();
+        public string Name => $"MNK {Columns},{Rows},{Connected},{Players},{Drops}";
         public int NumberOfPlayers => Players;
 
         public int Columns { get; private set; }
@@ -132,6 +132,7 @@ namespace Cybel.Games
                     if (block > 0)
                     {
                         var index = ((block - 1) * Columns) + column;
+
                         yield return new((ulong)index);
                     }
                 }
@@ -143,50 +144,6 @@ namespace Cybel.Games
                     if (Board[i] == -1)
                     {
                         yield return new((ulong)i);
-                    }
-                }
-            }
-        }
-
-        public void AddMoves(List<Move> moves)
-        {
-            if (IsTerminal())
-            {
-                return;
-            }
-
-            if (Drops)
-            {
-                for (int column = 0; column < Columns; column++)
-                {
-                    var block = Rows;
-
-                    for (int row = 0; row < Rows; row++)
-                    {
-                        var index = (row * Columns) + column;
-
-                        if (Board[index] != -1)
-                        {
-                            block = row;
-
-                            break;
-                        }
-                    }
-
-                    if (block > 0)
-                    {
-                        var index = ((block - 1) * Columns) + column;
-                        moves.Add(new((ulong)index));
-                    }
-                }
-            }
-            else
-            {
-                for (int i = 0; i < Board.Length; i++)
-                {
-                    if (Board[i] == -1)
-                    {
-                        moves.Add(new((ulong)i));
                     }
                 }
             }
@@ -265,13 +222,6 @@ namespace Cybel.Games
             return sb.ToString();
         }
 
-        private ulong GetId()
-        {
-            var id = Zobrist.GetHash($"{GetType().Name} {Columns}.{Rows}.{Connected}.{Players}.{Drops}");
-
-            return id;
-        }
-
         private bool HasWon(int pos)
         {
             var color = Board[pos];
@@ -297,12 +247,12 @@ namespace Cybel.Games
                         }
                         else if (side == Columns - 1 && next % Columns == Columns - 1)
                         {
-                            // wrapped around the board to the left
+                            // moved off the board to the left
                             break;
                         }
                         else if (side == 1 && next % Columns == 0)
                         {
-                            // wrapped around the board to the right
+                            // moved off the board to the right
                             break;
                         }
                         else if (Board[next] != color)

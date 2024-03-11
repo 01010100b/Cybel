@@ -8,14 +8,13 @@ namespace Cybel.Core
 {
     public interface IGame
     {
-        public ulong Id { get; } // unique ID for the game
+        public string Name { get; }
         public int NumberOfPlayers { get; } // number of players for game
 
         public ulong GetStateHash(); // hash of current state
         public int GetCurrentPlayer(); // current player to move
         public bool IsTerminal(); // is the current state terminal?
-        public double GetPlayerScore(int player); // score of player in terminal state, must be between 0 and 1 and all scores must sum to 1
-
+        public double GetPlayerScore(int player); // score of player if in terminal state, must be between 0 and 1
         public IEnumerable<Move> GetMoves();// generate available moves for current state
         public void Perform(Move move); // perform a given move and transition to the next state
         public void CopyTo(IGame other); // copy the current state to the other instance

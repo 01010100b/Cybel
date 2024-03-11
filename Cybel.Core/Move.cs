@@ -1,12 +1,7 @@
 ﻿namespace Cybel.Core
 {
-    public readonly struct Move
+    public readonly struct Move(ulong hash)
     {
-        public readonly ulong Hash;
-
-        public Move(ulong hash) 
-        {
-            Hash = hash;
-        }
+        public readonly ulong Hash = hash;
     }
 }

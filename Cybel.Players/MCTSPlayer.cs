@@ -32,11 +32,10 @@ namespace Cybel.Players
             }
         }
 
-        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
+        public override IEnumerable<KeyValuePair<Move, double>> ScoreMoves(IGame game, TimeSpan time)
         {
             var sw = Stopwatch.StartNew();
-
-            var g = game.Copy();
+            var g = ObjectPool.Get(game.Copy, game.CopyTo);
             RunSimulation(g);
 
             while (sw.Elapsed < time)
@@ -46,16 +45,16 @@ namespace Cybel.Players
             }
 
             var entry = GetTableEntry(game);
-            var scores = new Dictionary<Move, double>();
 
             for (int i = 0; i < entry.Moves.Count; i++)
             {
                 var move = entry.Moves[i];
                 var score = entry.Data!.Datas[i].Visits;
-                scores[move] = score;
+
+                yield return new(move, score);
             }
 
-            return scores;
+            ObjectPool.Add(g);
         }
 
         private void RunSimulation(IGame game)

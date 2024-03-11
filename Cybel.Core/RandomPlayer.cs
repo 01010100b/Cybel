@@ -12,17 +12,12 @@ namespace Cybel.Core.Players
 
         private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
 
-        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
+        public override IEnumerable<KeyValuePair<Move, double>> ScoreMoves(IGame game, TimeSpan time)
         {
-            var scores = new Dictionary<Move, double>();
-            var moves = game.GetMoves().ToList();
-
-            foreach (var move in moves)
+            foreach (var move in game.GetMoves())
             {
-                scores.Add(move, RNG.NextDouble());
+                yield return new(move, RNG.NextDouble());
             }
-
-            return scores;
         }
     }
 }

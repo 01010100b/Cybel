@@ -91,7 +91,7 @@ namespace Cybel.Core
                 return;
             }
 
-            var trims = new List<Entry>();
+            var trims = ObjectPool.Get(() => new List<Entry>(), x => x.Clear());
 
             foreach (var entry in Entries.Values.OrderBy(x => x.LastVisit))
             {
@@ -115,6 +115,8 @@ namespace Cybel.Core
 
                 ObjectPool.Add(entry);
             }
+
+            ObjectPool.Add(trims);
         }
     }
 }

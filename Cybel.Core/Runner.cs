@@ -9,17 +9,11 @@ namespace Cybel.Core
 {
     public class Runner
     {
-        public bool WriteToConsole { get; set; } = false;
         public TimeSpan TimeBank { get; set; } = TimeSpan.FromSeconds(1);
         public TimeSpan TimePerMove { get; set; } = TimeSpan.FromSeconds(0.1);
 
         public Dictionary<Player, double> Play(IGame game, IReadOnlyList<Player> players, int games)
         {
-            if (players.Count != game.NumberOfPlayers)
-            {
-                throw new Exception("Not the correct number of players.");
-            }
-
             var results = new Dictionary<Player, double>();
 
             foreach (var player in players)
@@ -27,30 +21,34 @@ namespace Cybel.Core
                 results.Add(player, 0);
             }
 
-            for (int i = 0; i < games; i++)
-            {
-                var scores = PlayGame(players.OrderBy(x => Random.Shared.Next()).ToList(), game.Copy());
+            var g = ObjectPool.Get(game.Copy, game.CopyTo);
 
-                foreach (var score in scores)
+            foreach (var match in GetMatches(players, game.NumberOfPlayers))
+            {
+                for (int i = 0; i < games; i++)
                 {
-                    results[score.Key] += score.Value;
+                    game.CopyTo(g);
+                    match.Sort((a, b) => Random.Shared.Next().CompareTo(Random.Shared.Next()));
+
+                    foreach (var score in PlayGame(match, g))
+                    {
+                        results[score.Key] += score.Value;
+                    }
                 }
             }
+
+            ObjectPool.Add(g);
 
             return results;
         }
 
-        private Dictionary<Player, double> PlayGame(IReadOnlyList<Player> players, IGame game)
+        private IEnumerable<KeyValuePair<Player, double>> PlayGame(IReadOnlyList<Player> players, IGame game)
         {
-            if (WriteToConsole)
-            {
-                Console.WriteLine(game);
-            }
-
-            var times = players.Select(x => TimeBank).ToList();
-            var moves = new List<Move>();
-            var g = game.Copy();
-            var sw = new Stopwatch();
+            var times = ObjectPool.Get(() => new List<TimeSpan>(), x => x.Clear());
+            times.AddRange(players.Select(x => TimeBank));
+            var moves = ObjectPool.Get(() => new List<Move>(), x => x.Clear());
+            var g = ObjectPool.Get(game.Copy, game.CopyTo);
+            var sw = Stopwatch.StartNew();
 
             while (!game.IsTerminal())
             {
@@ -79,27 +77,45 @@ namespace Cybel.Core
                 {
                     game.Perform(moves.First());
                 }
-
-                if (WriteToConsole)
-                {
-                    for (int i = 0; i < players.Count; i++)
-                    {
-                        var p = players[i];
-                        Console.WriteLine($"{i} {p.GetType().Name} {p}");
-                    }
-
-                    Console.WriteLine(game);
-                }
             }
 
-            var scores = new Dictionary<Player, double>();
+            ObjectPool.Add(times);
+            ObjectPool.Add(moves);
+            ObjectPool.Add(g);
 
             for (int i = 0; i < players.Count; i++)
             {
-                scores.Add(players[i], Math.Clamp(game.GetPlayerScore(i), 0, 1));
+                yield return new(players[i], game.GetPlayerScore(i));
+            }
+        }
+
+        private List<List<Player>> GetMatches(IReadOnlyList<Player> players, int count)
+        {
+            if (count <= 1)
+            {
+                return players.Select(x => new List<Player>() { x }).ToList();
+            }
+            else if (count > 2)
+            {
+                throw new NotImplementedException();
             }
 
-            return scores;
+            var matches = new List<List<Player>>();
+
+            for (int i = 0; i < players.Count - 1; i++)
+            {
+                for (int j = i + 1; j < players.Count; j++)
+                {
+                    var match = new List<Player>
+                    {
+                        players[i],
+                        players[j]
+                    };
+                    matches.Add(match);
+                }
+            }
+
+            return matches;
         }
     }
 }

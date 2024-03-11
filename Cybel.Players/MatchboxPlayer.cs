@@ -14,10 +14,10 @@ namespace Cybel.Players
     {
         protected override ITimeManager TimeManager => new BasicTimeManager();
 
-        private int MaxPips { get; set; } = 10000; // Math.Clamp(max_pips, 0, int.MaxValue);
-        private int InitialPips { get; set; } = 1000; // Math.Clamp(initial_pips, 0, int.MaxValue);
-        private double ExploreChance { get; set; } = 0.7; // Math.Clamp(explore_chance, 0, 1);
-        private double PipChangeMod { get; set; } = -0.3; // Math.Clamp(pip_change_mod, double.MinValue, 0);
+        private int MaxPips => (int)GetParameter("MaxPips");
+        private int InitialPips => (int)GetParameter("InitialPips");
+        private double ExploreChance => GetParameter("ExploreChance");
+        private double PipChangeMod => GetParameter("PipChangeMod");
 
         private Table<MatchboxData> Table { get; } = new();
         private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
@@ -40,30 +40,30 @@ namespace Cybel.Players
             }
         }
 
-        public override Dictionary<Move, double> ScoreMoves(IGame game, TimeSpan time)
+        public override IEnumerable<KeyValuePair<Move, double>> ScoreMoves(IGame game, TimeSpan time)
         {
-            RunSimulations(game.Copy(), time);
+            var g = ObjectPool.Get(game.Copy, game.CopyTo);
+            RunSimulations(g, time);
 
             var entry = GetTableEntry(game);
-            var scores = new Dictionary<Move, double>();
 
             for (int i = 0; i < entry.Moves.Count; i++)
             {
                 var move = entry.Moves[i];
                 var score = (double)entry.Data!.Pips[i];
-                scores.Add(move, score);
+
+                yield return new(move, score);
             }
 
-            return scores;
+            ObjectPool.Add(g);
         }
 
         private void RunSimulations(IGame game, TimeSpan time)
         {
-            var g = game.Copy();
-            var choices = new List<KeyValuePair<Table<MatchboxData>.Entry, int>>();
-            var scores = new List<double>();
-            var sw = new Stopwatch();
-            sw.Start();
+            var g = ObjectPool.Get(game.Copy, game.CopyTo);
+            var choices = ObjectPool.Get(() => new List<KeyValuePair<Table<MatchboxData>.Entry, int>>(), x => x.Clear());
+            var scores = ObjectPool.Get(() => new List<double>(), x => x.Clear());
+            var sw = Stopwatch.StartNew();
 
             while (sw.Elapsed < time)
             {
@@ -99,6 +99,10 @@ namespace Cybel.Players
                     pips[choice.Value] = score;
                 }
             }
+
+            ObjectPool.Add(choices);
+            ObjectPool.Add(scores);
+            ObjectPool.Add(g);
         }
 
         private int Choose(MatchboxData matchbox)
