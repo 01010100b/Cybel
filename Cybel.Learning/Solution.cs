@@ -9,6 +9,6 @@ namespace Cybel.Learning
     public class Solution
     {
         public double Fitness { get; set; } = 0;
-        public Dictionary<string, double> Parameters { get; } = [];
+        public Dictionary<string, double> Parameters { get; set; } = [];
     }
 }

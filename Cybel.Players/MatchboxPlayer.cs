@@ -20,7 +20,6 @@ namespace Cybel.Players
         private double PipChangeMod => GetParameter("PipChangeMod");
 
         private Table<MatchboxData> Table { get; } = new();
-        private Random RNG { get; } = new Random(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
         public override IEnumerable<Parameter> GetParameters()
@@ -75,7 +74,7 @@ namespace Cybel.Players
                 while (!g.IsTerminal())
                 {
                     var entry = GetTableEntry(g);
-                    var choice = RNG.NextDouble() < ExploreChance ? RNG.Next(entry.Moves.Count) : Choose(entry.Data!);
+                    var choice = Random.Shared.NextDouble() < ExploreChance ? Random.Shared.Next(entry.Moves.Count) : Choose(entry.Data!);
                     var move = entry.Moves[choice];
                     choices.Add(new(entry, choice));
                     g.Perform(move);
@@ -111,7 +110,7 @@ namespace Cybel.Players
 
             if (total > 0)
             {
-                var goal = RNG.NextDouble() * total;
+                var goal = Random.Shared.NextDouble() * total;
                 var acc = 0d;
 
                 for (int i = 0; i < matchbox.Pips.Count; i++)
@@ -125,7 +124,7 @@ namespace Cybel.Players
                 }
             }
 
-            return RNG.Next(matchbox.Pips.Count);
+            return Random.Shared.Next(matchbox.Pips.Count);
         }
 
         private Table<MatchboxData>.Entry GetTableEntry(IGame game)

@@ -15,13 +15,12 @@ namespace Cybel.Players
 
         private double C => GetParameter("C");
         private Table<MCTSData> Table { get; } = new();
-        private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
         private int Simulations { get; set; } = 0;
 
         public override IEnumerable<Parameter> GetParameters()
         {
             yield return new("C", 0, 10, 1.4);
-            yield return new("TimeMod", 2, 100, 2);
+            yield return new("TimeMod", 2, 50, 2);
         }
 
         protected override void OnParameterChanged(string name)
@@ -91,7 +90,7 @@ namespace Cybel.Players
             {
                 moves.Clear();
                 moves.AddRange(game.GetMoves());
-                game.Perform(moves[RNG.Next(moves.Count)]);
+                game.Perform(moves[Random.Shared.Next(moves.Count)]);
             }
 
             // backpropagation

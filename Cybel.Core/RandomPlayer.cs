@@ -10,13 +10,11 @@ namespace Cybel.Core.Players
     {
         protected override ITimeManager TimeManager => new BasicTimeManager();
 
-        private Random RNG { get; } = new(Guid.NewGuid().GetHashCode());
-
         public override IEnumerable<KeyValuePair<Move, double>> ScoreMoves(IGame game, TimeSpan time)
         {
             foreach (var move in game.GetMoves())
             {
-                yield return new(move, RNG.NextDouble());
+                yield return new(move, Random.Shared.NextDouble());
             }
         }
     }
