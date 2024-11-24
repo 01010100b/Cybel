@@ -1,48 +1,45 @@
 ﻿using Cybel.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Action = Cybel.Core.Action;
 
 namespace Cybel.Games
 {
-    public class MNK : IGame<MNK>
+    public class MNK : IEnvironment<MNK>
     {
         public static MNK GetTicTacToe() => new(3, 3, 3, 2);
         public static MNK GetConnectFour() => new(7, 6, 4, 2, true);
 
-        public string Name => $"MNK {Columns},{Rows},{Connected},{Players},{Drops}";
-        public int NumberOfPlayers => Players;
+        public string Name => $"MNK {Columns},{Rows},{Connected},{Agents},{Drops}";
+        public int NumberOfAgents => Agents;
 
         public int Columns { get; private set; }
         public int Rows { get; private set; }
         public int Connected { get; private set; }
-        public int Players { get; private set; }
+        public int Agents { get; private set; }
         public bool Drops { get; private set; } // whether placed pieces drop down (as in connect-four)
         private List<int> Dirs { get; }
 
         private int[] Board { get; set; }
-        private int Player { get; set; }
+        private int CurrentAgent { get; set; }
         private bool Terminal { get; set; }
         private int Winner { get; set; }
         private Zobrist Zobrist { get; }
 
-        public MNK(int columns, int rows, int connected, int players, bool drops = false) 
+        public MNK(int columns, int rows, int connected, int agents, bool drops = false)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(columns, 2);
             ArgumentOutOfRangeException.ThrowIfLessThan(rows, 2);
             ArgumentOutOfRangeException.ThrowIfLessThan(connected, 2);
-            ArgumentOutOfRangeException.ThrowIfLessThan(players, 1);
+            ArgumentOutOfRangeException.ThrowIfLessThan(agents, 1);
 
             Columns = columns;
             Rows = rows;
             Connected = connected;
-            Players = players;
+            Agents = agents;
             Drops = drops;
             Dirs =
             [
-                -1, 1, 
+                -1, 1,
                 Columns, -Columns,
                 Columns - 1, -Columns + 1,
                 -Columns - 1, Columns + 1
@@ -50,18 +47,18 @@ namespace Cybel.Games
 
             Board = new int[Columns * Rows];
             Array.Fill(Board, -1);
-            Player = 0;
+            CurrentAgent = 0;
             Terminal = false;
             Winner = -1;
 
-            var dimensions = new int[players + 1];
+            var dimensions = new int[agents + 1];
             Array.Fill(dimensions, Board.Length);
             Zobrist = new(dimensions);
         }
 
         public MNK Copy()
         {
-            var mnk = new MNK(Columns, Rows, Connected, Players, Drops);
+            var mnk = new MNK(Columns, Rows, Connected, Agents, Drops);
             CopyTo(mnk);
 
             return mnk;
@@ -72,12 +69,12 @@ namespace Cybel.Games
             other.Columns = Columns;
             other.Rows = Rows;
             other.Connected = Connected;
-            other.Players = Players;
+            other.Agents = Agents;
             other.Drops = Drops;
             other.Dirs.Clear();
             other.Dirs.AddRange(Dirs);
-            
-            other.Player = Player;
+
+            other.CurrentAgent = CurrentAgent;
             other.Terminal = Terminal;
             other.Winner = Winner;
 
@@ -89,7 +86,7 @@ namespace Cybel.Games
             Array.Copy(Board, other.Board, Board.Length);
         }
 
-        public int GetCurrentPlayer() => Player;
+        public int GetCurrentAgent() => CurrentAgent;
 
         public ulong GetStateHash()
         {
@@ -104,11 +101,11 @@ namespace Cybel.Games
             return Zobrist.Hash;
         }
 
-        public IEnumerable<Move> GetMoves()
+        public void GenerateActions(List<Action> moves)
         {
             if (IsTerminal())
             {
-                yield break;
+                return;
             }
 
             if (Drops)
@@ -133,7 +130,7 @@ namespace Cybel.Games
                     {
                         var index = ((block - 1) * Columns) + column;
 
-                        yield return new((ulong)index);
+                        moves.Add(new((ulong)index));
                     }
                 }
             }
@@ -143,7 +140,7 @@ namespace Cybel.Games
                 {
                     if (Board[i] == -1)
                     {
-                        yield return new((ulong)i);
+                        moves.Add(new((ulong)i));
                     }
                 }
             }
@@ -151,11 +148,11 @@ namespace Cybel.Games
 
         public bool IsTerminal() => Terminal;
 
-        public double GetPlayerScore(int player)
+        public double GetScore(int player)
         {
             if (Winner == -1)
             {
-                return 1d / NumberOfPlayers;
+                return 1d / NumberOfAgents;
             }
             else if (Winner == player)
             {
@@ -167,16 +164,16 @@ namespace Cybel.Games
             }
         }
 
-        public void Perform(Move move)
+        public void Perform(Action action)
         {
             if (IsTerminal())
             {
                 return;
             }
 
-            var pos = (int)move.Hash;
-            Board[pos] = Player;
-            Player = (Player + 1) % NumberOfPlayers;
+            var pos = (int)action.Hash;
+            Board[pos] = CurrentAgent;
+            CurrentAgent = (CurrentAgent + 1) % NumberOfAgents;
             Terminal = true;
 
             for (int i = 0; i < Board.Length; i++)
