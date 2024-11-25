@@ -107,7 +107,7 @@ namespace Cybel.Games
             {
                 return;
             }
-
+            
             if (Drops)
             {
                 for (int column = 0; column < Columns; column++)

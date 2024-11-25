@@ -1,19 +1,9 @@
-﻿using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
+﻿using BinaryLibs.Utils;
 
-namespace Cybel.Games
+namespace Cybel.Core
 {
     public class Zobrist
     {
-        public static ulong GetHash(string s)
-        {
-            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(s));
-            Debug.Assert(bytes.Length >= sizeof(ulong));
-
-            return BitConverter.ToUInt64(bytes);
-        }
-
         public ulong Hash { get; private set; }
 
         private ulong[][] Hashes { get; }
@@ -44,7 +34,6 @@ namespace Cybel.Games
         private void CalculateHashes(int seed)
         {
             var rng = new Random(seed);
-            var bytes = new byte[sizeof(ulong)];
 
             for (int i = 0; i < Hashes.Length; i++)
             {
@@ -52,8 +41,7 @@ namespace Cybel.Games
 
                 for (int j = 0; j < hashes.Length; j++)
                 {
-                    rng.NextBytes(bytes);
-                    hashes[j] = BitConverter.ToUInt64(bytes);
+                    hashes[j] = rng.NextULong();
                 }
             }
         }
